@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Word {
+  id         Int         @id @default(autoincrement())
+  text       String      @unique
+  embedding  Embedding?
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  @@map("Word")
+}
+
+model Embedding {
+  id        Int      @id @default(autoincrement())
+  wordId    Int      @unique @map("word_id")
+  vector    Unsupported("vector")
+  word      Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("Embedding")
+  @@index([wordId])
+}
