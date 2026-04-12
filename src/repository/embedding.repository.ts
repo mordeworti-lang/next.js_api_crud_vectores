@@ -1,5 +1,5 @@
 import { pool } from "@/lib/db/pool";
-import type { Embedding } from "@/types";
+import type { Embedding, SearchResult } from "@/types";
 
 function parseVector(vectorStr: string): number[] {
   return vectorStr
@@ -57,4 +57,31 @@ export async function update(wordId: number, vector: number[]): Promise<void> {
     `UPDATE "Embedding" SET vector = $2::vector WHERE word_id = $1`,
     [wordId, vectorString]
   );
+}
+
+function mapToSearchResult(row: {
+  word_id: number;
+  vector: string;
+  similarity: number;
+}): SearchResult {
+  return {
+    wordId: row.word_id,
+    vector: parseVector(row.vector),
+    similarity: row.similarity,
+  };
+}
+
+export async function searchSimilar(
+  queryVector: number[],
+  limit: number = 5
+): Promise<SearchResult[]> {
+  const vectorString = `[${queryVector.join(",")}]`;
+  const result = await pool.query(
+    `SELECT word_id, vector::text, 1 - (vector <=> $1::vector) as similarity
+     FROM "Embedding"
+     ORDER BY vector <=> $1::vector
+     LIMIT $2`,
+    [vectorString, limit]
+  );
+  return result.rows.map(mapToSearchResult);
 }

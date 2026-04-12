@@ -24,3 +24,14 @@ export const searchWordSchema = z.object({
 
 export type EmbedRequest = z.infer<typeof embedRequestSchema>;
 export type SearchWordRequest = z.infer<typeof searchWordSchema>;
+
+export const semanticSearchSchema = z.object({
+  query: z
+    .string()
+    .min(1, "La consulta es requerida")
+    .max(500, "Consulta demasiado larga")
+    .trim(),
+  limit: z.number().min(1).max(50).default(5),
+});
+
+export type SemanticSearchRequest = z.infer<typeof semanticSearchSchema>;

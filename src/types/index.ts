@@ -25,3 +25,9 @@ export interface ProcessWordResult {
   message: string;
   dimensions: number;
 }
+
+export interface SearchResult {
+  wordId: number;
+  vector: number[];
+  similarity: number;
+}

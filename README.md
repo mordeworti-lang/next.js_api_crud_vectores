@@ -1,16 +1,40 @@
 # Semantic Search API with OpenAI Embeddings
 
-Production-ready semantic search backend with vector embeddings. Built with **Next.js 16**, **Prisma 7**, **PostgreSQL + pgvector**, following **Clean Architecture** principles and modern TypeScript best practices (2026).
+[![Next.js](https://img.shields.io/badge/Next.js%2016-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript%205.4-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma%207-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL%2015-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)
+
+Production-ready semantic search backend with vector embeddings. Built with Next.js 16, Prisma 7, PostgreSQL + pgvector, following Clean Architecture principles and modern TypeScript best practices.
 
 **Author:** Jhon Stiven Zuluaga Jaramillo  
-**Version:** 1.0.0  
+**Version:** 1.2.0  
 **License:** MIT
 
 ---
 
-## 🚀 Features
+## Table of Contents
 
-- **Vector Embeddings**: OpenAI `text-embedding-3-small` (1536 dimensions)
+- [Prerequisites](#prerequisites)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Tech Stack](#tech-stack)
+- [Quick Start](#quick-start)
+- [API Reference](#api-reference)
+- [Code Standards](#code-standards)
+- [Design Decisions](#design-decisions)
+- [Testing](#testing)
+- [Roadmap](#roadmap)
+- [Performance](#performance)
+- [Security](#security)
+
+---
+
+## Features
+
+- **Vector Embeddings**: OpenAI text-embedding-3-small (1536 dimensions)
 - **Semantic Search**: PostgreSQL + pgvector with HNSW index for sub-millisecond similarity queries
 - **Prisma 7**: Type-safe ORM with driver adapters and connection pooling
 - **Clean Architecture**: Repository pattern, service layer, strict separation of concerns
@@ -19,7 +43,7 @@ Production-ready semantic search backend with vector embeddings. Built with **Ne
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Clean Architecture Layers
 
@@ -76,7 +100,7 @@ Structured Response (error | success)
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
@@ -118,7 +142,7 @@ prisma/
 
 ---
 
-## 🛠️ Tech Stack (2026 Standards)
+## Tech Stack
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
@@ -132,7 +156,7 @@ prisma/
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 20+
@@ -179,7 +203,7 @@ NODE_ENV="development"
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 ### POST `/api/embed`
 
@@ -312,19 +336,54 @@ curl -X DELETE "http://localhost:3000/api/word?id=1"
 
 ---
 
-## 🎯 Code Standards
+### POST `/api/search`
+
+Semantic similarity search across all stored embeddings.
+
+**Request:**
+```bash
+curl -X POST http://localhost:3000/api/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "inteligencia artificial", "limit": 5}'
+```
+
+**Success Response (200):**
+```json
+{
+  "query": "inteligencia artificial",
+  "count": 5,
+  "results": [
+    {
+      "wordId": 10,
+      "text": "machine learning",
+      "similarity": 0.55,
+      "vectorPreview": "-0.012, -0.011, 0.003..."
+    },
+    {
+      "wordId": 11,
+      "text": "deep learning",
+      "similarity": 0.44,
+      "vectorPreview": "0.018, -0.038, 0.018..."
+    }
+  ]
+}
+```
+
+---
+
+## Code Standards
 
 ### Function Size
 All functions are **< 15 lines** following Clean Code principles:
 
 ```typescript
-// ✅ Good - Single responsibility
+// Good - Single responsibility
 function buildVectorPreview(vector: number[]): string {
   const preview = vector.slice(0, 3).join(", ");
   return `${preview}... (${vector.length} dims)`;
 }
 
-// ✅ Good - Composed of helpers
+// Good - Composed of helpers
 export async function findWord(text?: string, id?: number) {
   const word = await findWordByCriteria(text, id);
   if (!word) return null;
@@ -359,7 +418,7 @@ export interface WordWithEmbedding extends Word {
 
 ---
 
-## 🔍 Key Design Decisions
+## Design Decisions
 
 ### 1. **Dual Repository Pattern**
 - `word.repository.ts`: Uses Prisma ORM for Word entity
@@ -387,7 +446,7 @@ All API routes use `handleApiError()`:
 
 ---
 
-## 🧪 Testing Strategy
+## Testing
 
 ```bash
 # Run type checker
@@ -405,10 +464,10 @@ npx prettier --write .
 
 ---
 
-## 🛣️ Roadmap
+## Roadmap
 
 ### Phase 2: Semantic Search
-- [ ] `POST /api/search` - Similarity search with `<=>` operator
+- [x] `POST /api/search` - Similarity search with `<=>` operator
 - [ ] `POST /api/compare` - Compare two words similarity
 - [ ] Top-k nearest neighbors query
 - [ ] Cosine distance threshold filtering
@@ -426,7 +485,7 @@ npx prettier --write .
 
 ---
 
-## 📊 Performance Metrics
+## Performance
 
 | Operation | Avg Response Time |
 |-----------|-------------------|
@@ -437,37 +496,22 @@ npx prettier --write .
 
 ---
 
-## 🔐 Security Checklist
+## Security
 
-- ✅ Environment variables excluded from Git (`.env*` in `.gitignore`)
-- ✅ API keys isolated in `.env.local`
-- ✅ Input sanitization via Zod schemas
-- ✅ SQL injection prevention via parameterized queries
-- ✅ Connection pooling with limits (max: 20)
+- Environment variables excluded from Git (`.env*` in `.gitignore`)
+- API keys isolated in `.env.local`
+- Input sanitization via Zod schemas
+- SQL injection prevention via parameterized queries
+- Connection pooling with limits (max: 20)
 
 ---
 
-## 📄 License
+## License
 
 MIT License - Copyright 2025 Jhon Stiven Zuluaga Jaramillo
 
 ---
 
-**Status:** ✅ CRUD Completo (POST, GET, PUT, DELETE)  
-**Version:** 1.1.0  
+**Status:** Production Ready - CRUD + Semantic Search Complete  
+**Version:** 1.2.0  
 **Last Updated:** April 12, 2026
-
----
-
-## ✅ Progreso
-
-### Completado
-- ✅ **Estructura de carpetas** `lib/` organizada (`db/`, `validation/`, `errors/`)
-- ✅ **POST** `/api/embed` - Crear embedding
-- ✅ **GET** `/api/word` - Buscar palabra (por texto o ID)
-- ✅ **PUT** `/api/word?id={id}` - Actualizar palabra y regenerar embedding
-- ✅ **DELETE** `/api/word?id={id}` - Eliminar palabra y embedding
-
-### Pendiente
-- ⏳ **POST** `/api/search` - Búsqueda por similitud semántica
-- ⏳ Tests unitarios con Jest/Vitest

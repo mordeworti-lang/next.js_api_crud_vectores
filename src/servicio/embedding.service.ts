@@ -1,7 +1,7 @@
 import { generateEmbedding } from "./iaService";
 import * as WordRepo from "@/repository/word.repository";
 import * as EmbeddingRepo from "@/repository/embedding.repository";
-import type { Word, Embedding, WordWithEmbedding, SaveResult } from "@/types";
+import type { Word, Embedding, WordWithEmbedding, SaveResult, SearchResult } from "@/types";
 
 export type { Word, Embedding, WordWithEmbedding, SaveResult };
 
@@ -80,4 +80,25 @@ export async function updateWord(id: number, newText: string): Promise<WordWithE
   await EmbeddingRepo.update(id, newVector);
   const embedding = await EmbeddingRepo.findByWordId(id);
   return { ...updatedWord, embedding };
+}
+
+export interface SearchResultWithWord extends SearchResult {
+  word: Word;
+}
+
+export async function searchSimilarWords(
+  query: string,
+  limit: number = 5
+): Promise<SearchResultWithWord[]> {
+  const queryVector = await generateEmbedding(query);
+  const results = await EmbeddingRepo.searchSimilar(queryVector, limit);
+  
+  const enrichedResults = await Promise.all(
+    results.map(async (result) => {
+      const word = await WordRepo.findById(result.wordId);
+      return { ...result, word: word! };
+    })
+  );
+  
+  return enrichedResults;
 }
