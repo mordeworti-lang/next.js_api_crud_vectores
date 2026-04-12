@@ -26,17 +26,18 @@ Production-ready semantic search backend with vector embeddings. Built with **Ne
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      PRESENTATION LAYER                      │
-│  ┌─────────────┐  ┌─────────────┐                          │
-│  │ POST /embed │  │ GET /word   │  Next.js API Routes       │
-│  │   route.ts  │  │   route.ts  │  (< 15 líneas)           │
-│  └──────┬──────┘  └──────┬──────┘                          │
-└─────────┼────────────────┼──────────────────────────────────┘
+│  ┌─────────────┐  ┌─────────────────────────┐              │
+│  │ POST /embed │  │ GET/PUT/DELETE /word    │  Next.js API  │
+│  │   route.ts  │  │       route.ts          │  Routes       │
+│  └──────┬──────┘  └───────────┬───────────┘  (< 15 líneas) │
+└─────────┼──────────────────────┼──────────────────────────────┘
           │                │
           ▼                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      SERVICE LAYER                         │
 │         embedding.service.ts (composición de repos)          │
-│  - processAndSaveWord()  - findWord()                       │
+│  - processAndSaveWord()  - findWord()  - updateWord()       │
+│  - deleteWord()                                            │
 └─────────┬───────────────────────────────────────────────────┘
           │
           ▼
@@ -82,19 +83,26 @@ src/
 ├── app/
 │   └── api/
 │       ├── embed/route.ts          # POST /api/embed - Create embedding
-│       └── word/route.ts           # GET /api/word?text= - Search word
+│       └── word/route.ts           # GET/PUT/DELETE /api/word - CRUD operations
 │
 ├── lib/
-│   ├── prisma.ts                   # PrismaClient singleton + adapter
-│   ├── schemas.ts                    # Zod validation schemas
-│   ├── errors.ts                     # AppError hierarchy
-│   ├── error-handler.ts              # Centralized error handler
-│   ├── validators.ts                 # normalizeText, isPrismaError
-│   └── utils.ts                      # cosineSimilarity (future use)
+│   ├── db/
+│   │   ├── prisma.ts               # PrismaClient singleton + adapter
+│   │   └── pool.ts                 # PostgreSQL Pool singleton
+│   │
+│   ├── validation/
+│   │   ├── schemas.ts              # Zod validation schemas
+│   │   └── validators.ts           # normalizeText, isPrismaError
+│   │
+│   ├── errors/
+│   │   ├── errors.ts               # AppError hierarchy
+│   │   └── error-handler.ts        # Centralized error handler
+│   │
+│   └── utils.ts                    # cosineSimilarity (future use)
 │
 ├── repository/
-│   ├── word.repository.ts          # Word CRUD (Prisma)
-│   └── embedding.repository.ts     # Embedding CRUD (pg Pool)
+│   ├── word.repository.ts          # Word CRUD (Prisma ORM)
+│   └── embedding.repository.ts     # Embedding CRUD (pg Pool raw SQL)
 │
 ├── servicio/
 │   ├── embedding.service.ts        # Business logic orchestration
@@ -236,7 +244,69 @@ curl "http://localhost:3000/api/word?id=1"
 ```json
 {
   "error": "NOT_FOUND",
-  "message": "Palabra no encontrado: gato"
+  "message": "Palabra no encontrada: gato"
+}
+```
+
+---
+
+### PUT `/api/word?id={id}`
+
+Update a word and regenerate its embedding.
+
+**Request:**
+```bash
+curl -X PUT "http://localhost:3000/api/word?id=1" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "gato"}'
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Palabra actualizada",
+  "word": {
+    "id": 1,
+    "text": "gato",
+    "createdAt": "2025-04-11T05:22:19.123Z",
+    "hasEmbedding": true,
+    "vectorPreview": "0.012, 0.045, -0.033... (1536 dims)"
+  }
+}
+```
+
+**Not Found (404):**
+```json
+{
+  "error": "NOT_FOUND",
+  "message": "Palabra con id 1 no encontrada"
+}
+```
+
+---
+
+### DELETE `/api/word?id={id}`
+
+Delete a word and its embedding.
+
+**Request:**
+```bash
+curl -X DELETE "http://localhost:3000/api/word?id=1"
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Palabra eliminada",
+  "id": 1
+}
+```
+
+**Not Found (404):**
+```json
+{
+  "error": "NOT_FOUND",
+  "message": "Palabra con id 1 no encontrada"
 }
 ```
 
@@ -383,5 +453,21 @@ MIT License - Copyright 2025 Jhon Stiven Zuluaga Jaramillo
 
 ---
 
-**Status:** ✅ Production-ready backend API  
-**Last Updated:** April 2026
+**Status:** ✅ CRUD Completo (POST, GET, PUT, DELETE)  
+**Version:** 1.1.0  
+**Last Updated:** April 12, 2026
+
+---
+
+## ✅ Progreso
+
+### Completado
+- ✅ **Estructura de carpetas** `lib/` organizada (`db/`, `validation/`, `errors/`)
+- ✅ **POST** `/api/embed` - Crear embedding
+- ✅ **GET** `/api/word` - Buscar palabra (por texto o ID)
+- ✅ **PUT** `/api/word?id={id}` - Actualizar palabra y regenerar embedding
+- ✅ **DELETE** `/api/word?id={id}` - Eliminar palabra y embedding
+
+### Pendiente
+- ⏳ **POST** `/api/search` - Búsqueda por similitud semántica
+- ⏳ Tests unitarios con Jest/Vitest
