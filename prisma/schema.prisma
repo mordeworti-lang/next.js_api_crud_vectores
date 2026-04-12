@@ -6,6 +6,10 @@ datasource db {
   provider = "postgresql"
 }
 
+// ============================================
+// MODELOS BASE (RAG)
+// ============================================
+
 model Word {
   id         Int         @id @default(autoincrement())
   text       String      @unique
@@ -24,4 +28,110 @@ model Embedding {
 
   @@map("Embedding")
   @@index([wordId])
+}
+
+// ============================================
+// USUARIOS CON ROLES
+// ============================================
+
+enum UserRole {
+  ADMIN    // Creador del sistema
+  ABOGADO  // Abogado registrado (requiere aprobación admin)
+  CLIENTE  // Cliente de un abogado (requiere clave de acceso)
+}
+
+enum UserStatus {
+  PENDIENTE    // Registrado pero no aprobado
+  ACTIVO       // Aprobado y puede usar el sistema
+  RECHAZADO    // Rechazado por admin/abogado
+  SUSPENDIDO   // Temporalmente suspendido
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  name      String     // Nombre completo
+  nickname  String?    // Apodo opcional
+  password  String     // Hash de contraseña
+  role      UserRole   @default(CLIENTE)
+  status    UserStatus @default(PENDIENTE)
+  
+  // Relaciones
+  lawyerId  Int?       @map("lawyer_id") // Si es CLIENTE, ID del abogado asignado
+  lawyer    User?      @relation("LawyerClients", fields: [lawyerId], references: [id])
+  clients   User[]     @relation("LawyerClients")
+  
+  // Verificación email
+  emailVerified Boolean @default(false) @map("email_verified")
+  emailCode     String? @map("email_code") // Código de verificación
+  emailCodeExpires DateTime? @map("email_code_expires")
+  
+  // Metadatos
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  // Relaciones en cascada
+  chats         Chat[]
+  clientKeys    ClientKey[]    @relation("LawyerGeneratedKeys")
+  accessKey     ClientKey?     @relation("UserAccessKey")
+  
+  @@map("User")
+  @@index([role, status])
+  @@index([lawyerId])
+}
+
+// ============================================
+// CLAVES DE ACCESO PARA CLIENTES
+// ============================================
+
+model ClientKey {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  lawyerId    Int      @map("lawyer_id")
+  lawyer      User     @relation("LawyerGeneratedKeys", fields: [lawyerId], references: [id], onDelete: Cascade)
+  
+  clientEmail String   @map("client_email")
+  used        Boolean  @default(false)
+  usedById    Int?     @unique @map("used_by_id")
+  usedBy      User?    @relation("UserAccessKey", fields: [usedById], references: [id])
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  expiresAt   DateTime? @map("expires_at")
+
+  @@map("ClientKey")
+  @@index([key])
+  @@index([lawyerId])
+  @@index([used])
+}
+
+// ============================================
+// CHATS (Múltiples por usuario - estilo ChatGPT)
+// ============================================
+
+model Chat {
+  id        Int      @id @default(autoincrement())
+  title     String   @default("Nueva conversación") // Título editable
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  messages  ChatMessage[]
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("Chat")
+  @@index([userId, updatedAt])
+}
+
+model ChatMessage {
+  id        Int      @id @default(autoincrement())
+  role      String   // "user" | "assistant" | "system"
+  content   String
+  chatId    Int      @map("chat_id")
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  metadata  Json?    // tokens, contextUsed, etc.
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("ChatMessage")
+  @@index([chatId, createdAt])
 }

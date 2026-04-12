@@ -8,7 +8,11 @@ function formatSearchResponse(results: Awaited<ReturnType<typeof searchSimilarWo
     wordId: result.wordId,
     text: result.word.text,
     similarity: Math.round(result.similarity * 100) / 100,
-    vectorPreview: result.vector.slice(0, 3).map((n) => n.toFixed(3)).join(", ") + "...",
+    vectorPreview:
+      result.vector
+        .slice(0, 3)
+        .map((n) => n.toFixed(3))
+        .join(", ") + "...",
   }));
 }
 

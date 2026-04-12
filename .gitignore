@@ -12,10 +12,32 @@
 
 # testing
 /coverage
+/test-api.js
+/test-results/
+/playwright-report/
+/test-results.xml
 
 # next.js
 /.next/
 /out/
+
+# development logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# temporary files
+*.tmp
+*.temp
 
 # production
 /build
@@ -39,3 +61,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+/test-api.js

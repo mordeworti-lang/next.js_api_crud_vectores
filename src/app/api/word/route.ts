@@ -6,11 +6,17 @@ import { NotFoundError } from "@/lib/errors/errors";
 import { handleApiError } from "@/lib/errors/error-handler";
 
 const deleteWordSchema = z.object({
-  id: z.string().regex(/^\d+$/, "El ID debe ser un número válido").transform((val) => parseInt(val, 10)),
+  id: z
+    .string()
+    .regex(/^\d+$/, "El ID debe ser un número válido")
+    .transform((val) => parseInt(val, 10)),
 });
 
 const updateWordSchema = z.object({
-  id: z.string().regex(/^\d+$/, "El ID debe ser un número válido").transform((val) => parseInt(val, 10)),
+  id: z
+    .string()
+    .regex(/^\d+$/, "El ID debe ser un número válido")
+    .transform((val) => parseInt(val, 10)),
   text: z.string().min(1, "El texto es requerido").max(500, "Texto demasiado largo"),
 });
 
@@ -79,10 +85,7 @@ export async function DELETE(req: Request) {
 
     await deleteWord(id);
 
-    return NextResponse.json(
-      { message: "Palabra eliminada", id },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "Palabra eliminada", id }, { status: 200 });
   } catch (error) {
     return handleApiError(error);
   }
@@ -92,7 +95,7 @@ export async function PUT(req: Request) {
   try {
     const urlParams = parseSearchParams(req);
     const body = await req.json();
-    
+
     const { id, text } = updateWordSchema.parse({ ...urlParams, ...body });
 
     const existingWord = await findWord(undefined, id);

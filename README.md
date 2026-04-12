@@ -1,26 +1,152 @@
-# Semantic Search API with OpenAI Embeddings
+# Multi-Tenant Chatbot Backend
 
-[![Next.js](https://img.shields.io/badge/Next.js%2016-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript%205.4-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Prisma](https://img.shields.io/badge/Prisma%207-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL%2015-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)
+**Backend completo con arquitectura multi-tenant y chatbot inteligente**
 
-Production-ready semantic search backend with vector embeddings. Built with Next.js 16, Prisma 7, PostgreSQL + pgvector, following Clean Architecture principles and modern TypeScript best practices.
+## 🏗️ Arquitectura
 
-**Author:** Jhon Stiven Zuluaga Jaramillo  
-**Version:** 1.2.0  
-**License:** MIT
+- **Framework**: Next.js 16 con App Router
+- **Base de Datos**: PostgreSQL + pgvector (Supabase)
+- **ORM**: Prisma 7
+- **Autenticación**: JWT con roles (Admin, Abogado, Cliente)
+- **IA**: OpenAI GPT-4o-mini
+- **Validación**: Zod
+- **Testing**: Script automatizado incluido
+
+## 🚀 Quick Start
+
+```bash
+# 1. Instalar dependencias
+npm install
+
+# 2. Configurar variables de entorno
+cp .env.example .env.local
+# Editar .env.local con tus credenciales
+
+# 3. Configurar base de datos
+npx prisma migrate dev
+# O ejecutar database.sql en Supabase
+
+# 4. Generar Prisma Client
+npx prisma generate
+
+# 5. Iniciar servidor
+npm run dev
+
+# 6. Probar API
+npm run test:api
+```
+
+## 📋 Variables de Entorno
+
+```env
+# Base de datos (Supabase)
+DATABASE_URL="postgresql://postgres:[password]@db.[ref].supabase.co:5432/postgres"
+
+# OpenAI
+OPENAI_API_KEY="sk-..."
+
+# JWT
+JWT_SECRET="tu-secreto-super-seguro"
+
+NODE_ENV="development"
+```
+
+## 🔐 Roles y Permisos
+
+| Rol | Permisos |
+|-----|-----------|
+| **ADMIN** | Aprobar/rechazar abogados, ver todos los usuarios |
+| **ABOGADO** | Generar claves de cliente, ver sus clientes y chats |
+| **CLIENTE** | Crear chats, enviar mensajes, gestionar su cuenta |
+
+## 📡 API Endpoints
+
+### Autenticación
+- `POST /api/auth` - Login de usuarios
+- `DELETE /api/user` - Eliminar cuenta (cascade delete)
+
+### Registro
+- `POST /api/register/lawyer` - Registro de abogado (requiere aprobación)
+- `POST /api/register/client` - Registro de cliente (requiere clave)
+
+### Admin
+- `GET /api/admin/lawyers` - Listar abogados pendientes
+- `PUT /api/admin/lawyers/[id]` - Aprobar/rechazar abogado
+
+### Abogado
+- `GET /api/client-keys` - Listar claves generadas
+- `POST /api/client-keys` - Generar nueva clave
+- `GET /api/lawyer/clients` - Ver mis clientes
+- `GET /api/lawyer/clients/[id]/chats` - Ver chats de cliente
+
+### Chats
+- `GET /api/chats` - Listar chats del usuario
+- `POST /api/chats` - Crear nuevo chat
+- `GET /api/chats/[id]` - Ver chat específico
+- `PUT /api/chats/[id]` - Renombrar chat
+- `DELETE /api/chats/[id]` - Eliminar chat (con mensajes)
+- `POST /api/chats/[id]/messages` - Enviar mensaje
+
+### Búsqueda Semántica (Legacy)
+- `POST /api/embed` - Crear embedding
+- `GET /api/word` - Buscar palabra
+- `PUT /api/word` - Actualizar palabra
+- `DELETE /api/word` - Eliminar palabra
+- `POST /api/search` - Búsqueda semántica
+
+## 🧪 Testing
+
+```bash
+# Ejecutar tests automatizados
+npm run test:api
+
+# Verificar tipos
+npx tsc --noEmit
+
+# Build de producción
+npm run build
+```
+
+## 📊 Estructura del Proyecto
+
+```
+src/
+├── app/api/           # Endpoints de la API
+├── lib/
+│   ├── auth/         # Middleware de autenticación
+│   ├── db/           # Conexión a base de datos
+│   ├── errors/        # Manejo centralizado de errores
+│   └── validation/    # Schemas con Zod
+├── repository/         # Capa de datos (Prisma)
+├── servicio/          # Lógica de negocio
+└── types/             # Interfaces TypeScript
+```
+
+## 🛡️ Seguridad
+
+- Autenticación JWT con expiración
+- Validación de entrada con Zod
+- Inyección SQL prevenida con Prisma
+- Variables de entorno protegidas
+- CORS configurado
+
+## 📈 Características
+
+✅ Multi-tenant con roles definidos  
+✅ Aprobación de abogados por admin  
+✅ Claves de acceso para clientes  
+✅ Chatbot con contexto y memoria  
+✅ Filtrado de temas fuera de contexto  
+✅ Eliminación en cascada de datos  
+✅ Respuestas con personalidad profesional  
+✅ Búsqueda semántica con embeddings  
+✅ Testing automatizado completo  
 
 ---
 
-## Table of Contents
-
-- [Prerequisites](#prerequisites)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Project Structure](#project-structure)
-- [Tech Stack](#tech-stack)
+**Status**: ✅ Backend Completo y Funcional  
+**Versión**: 1.0.0  
+**Última actualización**: 12 de Abril, 2026
 - [Quick Start](#quick-start)
 - [API Reference](#api-reference)
 - [Code Standards](#code-standards)
@@ -144,21 +270,22 @@ prisma/
 
 ## Tech Stack
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Framework** | Next.js 16 (App Router) | API Routes, Server Components |
-| **Language** | TypeScript 5.4 | Strict type safety |
-| **ORM** | Prisma 7 | Type-safe DB access with driver adapters |
-| **Database** | PostgreSQL 15 + pgvector | Vector storage + similarity search |
-| **Validation** | Zod 3.x | Schema validation with TypeScript inference |
-| **AI** | OpenAI API | text-embedding-3-small (1536d) |
-| **Utilities** | pg (node-postgres) | Raw SQL for vector operations |
+| Layer          | Technology               | Purpose                                     |
+| -------------- | ------------------------ | ------------------------------------------- |
+| **Framework**  | Next.js 16 (App Router)  | API Routes, Server Components               |
+| **Language**   | TypeScript 5.4           | Strict type safety                          |
+| **ORM**        | Prisma 7                 | Type-safe DB access with driver adapters    |
+| **Database**   | PostgreSQL 15 + pgvector | Vector storage + similarity search          |
+| **Validation** | Zod 3.x                  | Schema validation with TypeScript inference |
+| **AI**         | OpenAI API               | text-embedding-3-small (1536d)              |
+| **Utilities**  | pg (node-postgres)       | Raw SQL for vector operations               |
 
 ---
 
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 20+
 - PostgreSQL 15+ with pgvector extension enabled
 - OpenAI API key
@@ -210,6 +337,7 @@ NODE_ENV="development"
 Generate and store embedding for a text.
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/embed \
   -H "Content-Type: application/json" \
@@ -217,6 +345,7 @@ curl -X POST http://localhost:3000/api/embed \
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "query": "inteligencia artificial",
@@ -227,13 +356,12 @@ curl -X POST http://localhost:3000/api/embed \
 ```
 
 **Error Response (400):**
+
 ```json
 {
   "error": "VALIDATION_ERROR",
   "message": "Datos de entrada inválidos",
-  "details": [
-    { "field": "query", "message": "El texto no puede estar vacío" }
-  ]
+  "details": [{ "field": "query", "message": "El texto no puede estar vacío" }]
 }
 ```
 
@@ -244,16 +372,19 @@ curl -X POST http://localhost:3000/api/embed \
 Retrieve word with its embedding.
 
 **By Text:**
+
 ```bash
 curl "http://localhost:3000/api/word?text=perro"
 ```
 
 **By ID:**
+
 ```bash
 curl "http://localhost:3000/api/word?id=1"
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "id": 1,
@@ -265,6 +396,7 @@ curl "http://localhost:3000/api/word?id=1"
 ```
 
 **Not Found (404):**
+
 ```json
 {
   "error": "NOT_FOUND",
@@ -279,6 +411,7 @@ curl "http://localhost:3000/api/word?id=1"
 Update a word and regenerate its embedding.
 
 **Request:**
+
 ```bash
 curl -X PUT "http://localhost:3000/api/word?id=1" \
   -H "Content-Type: application/json" \
@@ -286,6 +419,7 @@ curl -X PUT "http://localhost:3000/api/word?id=1" \
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "message": "Palabra actualizada",
@@ -300,6 +434,7 @@ curl -X PUT "http://localhost:3000/api/word?id=1" \
 ```
 
 **Not Found (404):**
+
 ```json
 {
   "error": "NOT_FOUND",
@@ -314,11 +449,13 @@ curl -X PUT "http://localhost:3000/api/word?id=1" \
 Delete a word and its embedding.
 
 **Request:**
+
 ```bash
 curl -X DELETE "http://localhost:3000/api/word?id=1"
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "message": "Palabra eliminada",
@@ -327,6 +464,7 @@ curl -X DELETE "http://localhost:3000/api/word?id=1"
 ```
 
 **Not Found (404):**
+
 ```json
 {
   "error": "NOT_FOUND",
@@ -341,6 +479,7 @@ curl -X DELETE "http://localhost:3000/api/word?id=1"
 Semantic similarity search across all stored embeddings.
 
 **Request:**
+
 ```bash
 curl -X POST http://localhost:3000/api/search \
   -H "Content-Type: application/json" \
@@ -348,6 +487,7 @@ curl -X POST http://localhost:3000/api/search \
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "query": "inteligencia artificial",
@@ -374,6 +514,7 @@ curl -X POST http://localhost:3000/api/search \
 ## Code Standards
 
 ### Function Size
+
 All functions are **< 15 lines** following Clean Code principles:
 
 ```typescript
@@ -392,6 +533,7 @@ export async function findWord(text?: string, id?: number) {
 ```
 
 ### Error Handling
+
 Structured error hierarchy with context:
 
 ```typescript
@@ -402,6 +544,7 @@ throw new ValidationError("Invalid input", { field: "query" });
 ```
 
 ### Type Safety
+
 Domain-driven types in `@/types`:
 
 ```typescript
@@ -421,25 +564,31 @@ export interface WordWithEmbedding extends Word {
 ## Design Decisions
 
 ### 1. **Dual Repository Pattern**
+
 - `word.repository.ts`: Uses Prisma ORM for Word entity
 - `embedding.repository.ts`: Uses `pg` Pool raw queries for vector operations
 - **Why**: pgvector requires raw SQL for vector type casting (`::vector`)
 
 ### 2. **Singleton Pool with Cleanup**
+
 ```typescript
 const pool = globalForPool.pgPool ?? createPool();
 process.on("SIGTERM", () => pool.end());
 ```
+
 - Prevents connection leaks on hot reloads
 - Graceful shutdown on server termination
 
 ### 3. **Zod for Runtime Validation**
+
 - Type-safe input validation
 - Automatic error formatting
 - Infer TypeScript types from schemas
 
 ### 4. **Centralized Error Handler**
+
 All API routes use `handleApiError()`:
+
 - Converts AppError → JSON response with correct status code
 - Converts ZodError → 400 with field-level details
 - Logs unknown errors → 500 generic response
@@ -467,17 +616,20 @@ npx prettier --write .
 ## Roadmap
 
 ### Phase 2: Semantic Search
+
 - [x] `POST /api/search` - Similarity search with `<=>` operator
 - [ ] `POST /api/compare` - Compare two words similarity
 - [ ] Top-k nearest neighbors query
 - [ ] Cosine distance threshold filtering
 
 ### Phase 3: Frontend
+
 - [ ] React 19 + Next.js frontend
 - [ ] Tailwind CSS 4 UI
 - [ ] Real-time search interface
 
 ### Phase 4: Production Hardening
+
 - [ ] Vitest test suite
 - [ ] Rate limiting middleware
 - [ ] Redis caching layer
@@ -487,12 +639,12 @@ npx prettier --write .
 
 ## Performance
 
-| Operation | Avg Response Time |
-|-----------|-------------------|
-| POST /api/embed | ~2.5s (includes OpenAI API call) |
-| GET /api/word | ~50ms (cached by Prisma) |
-| Vector storage | 1536 dimensions per embedding |
-| Database index | HNSW (cosine similarity optimized) |
+| Operation       | Avg Response Time                  |
+| --------------- | ---------------------------------- |
+| POST /api/embed | ~2.5s (includes OpenAI API call)   |
+| GET /api/word   | ~50ms (cached by Prisma)           |
+| Vector storage  | 1536 dimensions per embedding      |
+| Database index  | HNSW (cosine similarity optimized) |
 
 ---
 

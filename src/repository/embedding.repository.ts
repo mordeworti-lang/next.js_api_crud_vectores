@@ -11,10 +11,10 @@ function parseVector(vectorStr: string): number[] {
 
 export async function create(wordId: number, vector: number[]): Promise<void> {
   const vectorString = `[${vector.join(",")}]`;
-  await pool.query(
-    `INSERT INTO "Embedding" ("word_id", "vector") VALUES ($1, $2::vector)`,
-    [wordId, vectorString]
-  );
+  await pool.query(`INSERT INTO "Embedding" ("word_id", "vector") VALUES ($1, $2::vector)`, [
+    wordId,
+    vectorString,
+  ]);
 }
 
 function mapToEmbedding(row: {
@@ -45,18 +45,15 @@ export async function findByWordId(wordId: number): Promise<Embedding | null> {
 }
 
 export async function deleteByWordId(wordId: number): Promise<void> {
-  await pool.query(
-    `DELETE FROM "Embedding" WHERE word_id = $1`,
-    [wordId]
-  );
+  await pool.query(`DELETE FROM "Embedding" WHERE word_id = $1`, [wordId]);
 }
 
 export async function update(wordId: number, vector: number[]): Promise<void> {
   const vectorString = `[${vector.join(",")}]`;
-  await pool.query(
-    `UPDATE "Embedding" SET vector = $2::vector WHERE word_id = $1`,
-    [wordId, vectorString]
-  );
+  await pool.query(`UPDATE "Embedding" SET vector = $2::vector WHERE word_id = $1`, [
+    wordId,
+    vectorString,
+  ]);
 }
 
 function mapToSearchResult(row: {

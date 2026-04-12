@@ -3,6 +3,7 @@ export type ErrorCode =
   | "VALIDATION_ERROR"
   | "NOT_FOUND"
   | "AI_SERVICE_ERROR"
+  | "UNAUTHORIZED"
   | "UNKNOWN_ERROR";
 
 export interface ErrorDetails {
@@ -78,5 +79,17 @@ export class AIServiceError extends AppError {
       context,
     });
     this.name = "AIServiceError";
+  }
+}
+
+export class UnauthorizedError extends AppError {
+  constructor(message: string, context?: Record<string, unknown>) {
+    super({
+      code: "UNAUTHORIZED",
+      message,
+      statusCode: 401,
+      context,
+    });
+    this.name = "UnauthorizedError";
   }
 }

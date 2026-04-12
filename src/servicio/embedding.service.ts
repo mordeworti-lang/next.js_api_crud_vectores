@@ -13,11 +13,7 @@ function getMessageForStatus(status: SaveResult): string {
   return messages[status];
 }
 
-function buildSuccessResponse(
-  query: string,
-  status: SaveResult,
-  dimensions: number
-) {
+function buildSuccessResponse(query: string, status: SaveResult, dimensions: number) {
   return {
     query,
     status,
@@ -32,7 +28,6 @@ export async function processAndSaveWord(query: string): Promise<{
   message: string;
   dimensions: number;
 }> {
-
   const existing = await WordRepo.findByText(query);
   if (existing) {
     return buildSuccessResponse(query, "exists", 1536);
@@ -46,10 +41,7 @@ export async function processAndSaveWord(query: string): Promise<{
   return buildSuccessResponse(query, "created", vector.length);
 }
 
-async function findWordByCriteria(
-  text?: string,
-  id?: number
-): Promise<Word | null> {
+async function findWordByCriteria(text?: string, id?: number): Promise<Word | null> {
   if (text) return WordRepo.findByText(text);
   if (id) return WordRepo.findById(id);
   return null;
@@ -60,10 +52,7 @@ async function enrichWithEmbedding(word: Word): Promise<WordWithEmbedding> {
   return { ...word, embedding };
 }
 
-export async function findWord(
-  text?: string,
-  id?: number
-): Promise<WordWithEmbedding | null> {
+export async function findWord(text?: string, id?: number): Promise<WordWithEmbedding | null> {
   const word = await findWordByCriteria(text, id);
   if (!word) return null;
   return enrichWithEmbedding(word);
@@ -92,13 +81,13 @@ export async function searchSimilarWords(
 ): Promise<SearchResultWithWord[]> {
   const queryVector = await generateEmbedding(query);
   const results = await EmbeddingRepo.searchSimilar(queryVector, limit);
-  
+
   const enrichedResults = await Promise.all(
     results.map(async (result) => {
       const word = await WordRepo.findById(result.wordId);
       return { ...result, word: word! };
     })
   );
-  
+
   return enrichedResults;
 }

@@ -22,7 +22,9 @@
       "@/*": ["./src/*"],
       "@app/*": ["./src/app/embed/*"],
       "@lib/*": ["./src/lib/*"],
-      "@servicio/*": ["./src/servicio/*"]
+      "@servicio/*": ["./src/servicio/*"],
+      "@/errors/error-handler": ["./src/errors/error-handler.ts"],
+      "@/servicio/chat.service": ["./src/servicio/chat.service.ts"]
     }
   },
   "include": [
