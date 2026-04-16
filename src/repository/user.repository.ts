@@ -62,20 +62,36 @@ export async function findById(id: number, forAuth?: boolean): Promise<User| Saf
   return forAuth ? mapToUserInternal(user) : mapToSafeUser(user);
 }
 
-export async function update(id: number, data: UpdateUserInput): Promise<User> {
-  const user = await prisma.user.update({
+export async function update(id: number, data: UpdateUserInput): Promise<SafeUser> {
+  
+  const { password, nickname, name } = data;
+  
+  const updateUser = await prisma.user.update({
     where: { id },
-    data: {
-      ...(data.name && { name: data.name }),
-      ...(data.nickname !== undefined && { nickname: data.nickname }),
-      ...(data.password && { password: data.password }),
-    },
-  });
-  return mapToUser(user);
+    data:{
+      //Se usa para decir "Si esto es verdad, haz lo siguiente".
+      ...(name && { name }),
+      ...(password && {password: await hash(password, 10)}),
+      //...: Se usa para "pegar" el resultado dentro del objeto principal.
+      ...(nickname !== undefined && { nickname: nickname ?? null}),
+      
+    }
+  })
+
+  return mapToSafeUser(updateUser);
 }
 
-export async function deleteById(id: number): Promise<void> {
+export async function deleteById(id: number): Promise<SafeUser | null> {
+
+  const user =await findById(id);
+
+  if (!user) return null;
+
   await prisma.user.delete({
     where: { id },
   });
+
+  console.log(`[User Repository]: Usuario con email ${user.email} eliminado.`);
+  
+  return user as SafeUser;
 }
