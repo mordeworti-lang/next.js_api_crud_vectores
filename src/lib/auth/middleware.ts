@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
-import { verifyToken, JwtPayload } from "./jwt";
+import { verifyToken} from "./jwt";
 import { UnauthorizedError } from "@/lib/errors/errors";
+import { JwtPayload } from "@/types";
 
 export function requireAuth(req: NextRequest): JwtPayload {
   const authHeader = req.headers.get("authorization");

@@ -1,71 +1,65 @@
 import { prisma } from "@/lib/db/prisma";
-import type { User } from "@/types";
+import { User as PrismaUser } from "@prisma/client"; 
+// esportamos el tipo user o la tabla user en vez de una interfas y asi aprovechamos el doble tipado y el manejo de los datos crudos de db
+import type { User, CreateUserInput, UpdateUserInput } from "@/types";
+import { hash } from "bcrypt";
 
-export interface CreateUserInput {
-  email: string;
-  name: string;
-  nickname?: string;
-  password: string;
-}
+// aqui definimos el tipo SafeUser que es el mismo que User pero sin los campos de autenticación
+export type SafeUser = Omit<User, 'password'| 'emailCode' | 'emailCodeExpires'>;
 
-export interface UpdateUserInput {
-  name?: string;
-  nickname?: string;
-  password?: string;
-}
-
-function mapToUser(data: {
-  id: number;
-  email: string;
-  name: string;
-  nickname: string | null;
-  password: string;
-  role: "ADMIN" | "ABOGADO" | "CLIENTE";
-  status: "PENDIENTE" | "ACTIVO" | "RECHAZADO" | "SUSPENDIDO";
-  lawyerId: number | null;
-  emailVerified: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}): User {
+// estendemos la interfas user para, que reconosca los campos de autenticación y luego eliminarlos 
+type UserWithAuthFields = User & {
+  emailCode?: string | null;
+  emailCodeExpires?: Date | null;
+};
+function mapToUserInternal(data: PrismaUser): User {
   return {
-    id: data.id,
-    email: data.email,
-    name: data.name,
+    ...data,
+    //limpiamos campos que son opcionales en la base de datos pero no en el tipo User
     nickname: data.nickname ?? undefined,
-    password: data.password,
-    role: data.role,
-    status: data.status,
     lawyerId: data.lawyerId ?? undefined,
-    emailVerified: data.emailVerified,
-    createdAt: data.createdAt,
-    updatedAt: data.updatedAt,
-  };
+    // aseguramos que los campos role y status sean del tipo correcto de la interfaz User
+    role: data.role as User['role'],
+    status: data.status as User['status'],
+  } as User 
+}
+//Eliminamos datos sensibles como password, emailCode y emailCodeExpires con destructuring
+export function mapToSafeUser(data: PrismaUser): SafeUser {
+  const internalUser = mapToUserInternal(data) as UserWithAuthFields 
+  const {password, emailCode, emailCodeExpires, ...safeUser} = internalUser
+  return safeUser as SafeUser
 }
 
-export async function create(data: CreateUserInput): Promise<User> {
-  const user = await prisma.user.create({
+//creamos un nuevo usuario con hash de contraseña
+export async function create(data: CreateUserInput): Promise<SafeUser> {
+
+  const hashedPassword = await hash(data.password, 10);
+
+  const newUSer = await prisma.user.create({
     data: {
       email: data.email,
       name: data.name,
       nickname: data.nickname ?? null,
-      password: data.password,
+      password: hashedPassword,
     },
   });
-  return mapToUser(user);
+  return mapToSafeUser(newUSer);
 }
 
-export async function findByEmail(email: string): Promise<User | null> {
+export async function findByEmail(email: string, forAuth?: boolean): Promise<User | SafeUser | null> {
   const user = await prisma.user.findUnique({
     where: { email },
   });
-  return user ? mapToUser(user) : null;
+  if (!user) return null;
+  return forAuth ? mapToUserInternal(user) : mapToSafeUser(user);
 }
 
-export async function findById(id: number): Promise<User | null> {
+export async function findById(id: number, forAuth?: boolean): Promise<User| SafeUser | null> {
   const user = await prisma.user.findUnique({
     where: { id },
   });
-  return user ? mapToUser(user) : null;
+  if (!user) return null;
+  return forAuth ? mapToUserInternal(user) : mapToSafeUser(user);
 }
 
 export async function update(id: number, data: UpdateUserInput): Promise<User> {

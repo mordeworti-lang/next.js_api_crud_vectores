@@ -24,7 +24,9 @@
       "@lib/*": ["./src/lib/*"],
       "@servicio/*": ["./src/servicio/*"],
       "@/errors/error-handler": ["./src/errors/error-handler.ts"],
-      "@/servicio/chat.service": ["./src/servicio/chat.service.ts"]
+      "@/servicio/chat.service": ["./src/servicio/chat.service.ts"],
+      "@/lib/auth/jwt": ["./src/lib/auth/jwt.ts"],
+      "@types": ["./src/types/index.ts"]
     }
   },
   "include": [

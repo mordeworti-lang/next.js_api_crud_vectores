@@ -53,33 +53,38 @@ NODE_ENV="development"
 
 ## Roles y Permisos
 
-| Rol | Permisos |
-|-----|-----------|
-| ADMIN | Aprobar/rechazar abogados, ver todos los usuarios |
+| Rol     | Permisos                                            |
+| ------- | --------------------------------------------------- |
+| ADMIN   | Aprobar/rechazar abogados, ver todos los usuarios   |
 | ABOGADO | Generar claves de cliente, ver sus clientes y chats |
-| CLIENTE | Crear chats, enviar mensajes, gestionar su cuenta |
+| CLIENTE | Crear chats, enviar mensajes, gestionar su cuenta   |
 
 ## API Endpoints
 
 ### Autenticación
+
 - `POST /api/auth` - Login de usuarios
 - `DELETE /api/user` - Eliminar cuenta (cascade delete)
 
 ### Registro
+
 - `POST /api/register/lawyer` - Registro de abogado (requiere aprobación)
 - `POST /api/register/client` - Registro de cliente (requiere clave)
 
 ### Admin
+
 - `GET /api/admin/lawyers` - Listar abogados pendientes
 - `PUT /api/admin/lawyers/[id]` - Aprobar/rechazar abogado
 
 ### Abogado
+
 - `GET /api/client-keys` - Listar claves generadas
 - `POST /api/client-keys` - Generar nueva clave
 - `GET /api/lawyer/clients` - Ver mis clientes
 - `GET /api/lawyer/clients/[id]/chats` - Ver chats de cliente
 
 ### Chats
+
 - `GET /api/chats` - Listar chats del usuario
 - `POST /api/chats` - Crear nuevo chat
 - `GET /api/chats/[id]` - Ver chat específico
@@ -88,6 +93,7 @@ NODE_ENV="development"
 - `POST /api/chats/[id]/messages` - Enviar mensaje
 
 ### Búsqueda Semántica (Legacy)
+
 - `POST /api/embed` - Crear embedding
 - `GET /api/word` - Buscar palabra
 - `PUT /api/word` - Actualizar palabra

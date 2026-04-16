@@ -85,6 +85,7 @@ export interface User {
   updatedAt: Date;
 }
 
+
 export interface CreateUserInput {
   email: string;
   name: string;
@@ -114,4 +115,24 @@ export interface LoginCredentials {
 export interface AuthResponse {
   token: string;
   user: Omit<User, "password">;
+}
+
+export interface JwtPayload {
+  userId: number;
+  email: string;
+  role: string;
+  status: string;
+}
+
+export interface CreateUserInput {
+  email: string;
+  name: string;
+  nickname?: string;
+  password: string;
+}
+
+export interface UpdateUserInput {
+  name?: string;
+  nickname?: string;
+  password?: string;
 }
