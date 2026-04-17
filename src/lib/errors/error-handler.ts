@@ -6,6 +6,7 @@ export function handleApiError(error: unknown): NextResponse {
   if (error instanceof AppError) {
     return NextResponse.json(error.toJSON(), { status: error.statusCode });
   }
+  
 
   if (error instanceof ZodError) {
     const issues = error.issues.map((issue) => ({

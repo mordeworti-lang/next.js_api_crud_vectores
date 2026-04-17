@@ -1,9 +1,8 @@
 import { prisma } from "@/lib/db/prisma";
 import { normalizeText } from "@/lib/validation/validators";
 import type { Word } from "@/types";
-import { NotFoundError } from "@/lib/errors/errors";
-import { handleNotFoundError } from "@/lib/errors/error-handler";
-import { deleteWord } from "@/servicio/embedding.service";
+import { handleNotFoundError,handleDuplicateError } from "@/repository/user.repository";
+
 
 // Usamos el tipo PrismaWord como en user.repository
 type PrismaWord = {
@@ -34,18 +33,21 @@ export async function findById(id: number): Promise<Word | null> {
 
 export async function create(text: string): Promise<Word> {
   const normalized = normalizeText(text);
-  const word = await prisma.word.create({ data: { text: normalized } });
+  const word = await handleDuplicateError(
+    prisma.word.create({ data: { text: normalized } }),
+    normalized
+  );
   return mapToWord(word);
 }
 
 export async function deleteById(id: number): Promise<Word | null> {
 
-  const deletedWord = await handleNotFoundError(() =>
-  prisma.word.delete({ where: { id } }), 
-  id.toString()
+  const deletedWord = await handleNotFoundError(
+    prisma.word.delete({ where: { id } }), 
+    id.toString()
   );
   
-  console.log(`[Word Repository]: Usuario con email ${deleteWord.text} eliminado.`);
+  console.log(`[Word Repository]: Usuario con email ${deletedWord.text} eliminado.`);
   return deletedWord ? mapToWord(deletedWord) : null;
 }
 

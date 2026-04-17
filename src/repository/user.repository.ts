@@ -36,6 +36,8 @@ export async function findByEmail(email: string, forAuth?: boolean): Promise<Use
     where: { email },
   });
   if (!user) return null;
+  
+  //terneario para devolver el usuario con o sin datos de autenticación
   return forAuth ? mapToUserInternal(user) : mapToSafeUser(user);
 }
 
@@ -44,10 +46,12 @@ export async function findById(id: number, forAuth?: boolean): Promise<User| Saf
     where: { id },
   });
   if (!user) return null;
+  
+  //terneario para devolver el usuario con o sin datos de autenticación
   return forAuth ? mapToUserInternal(user) : mapToSafeUser(user);
 }
 
-async function handleNotFoundError<T>(promise: Promise<T>, message: string): Promise<T> {
+export async function handleNotFoundError<T>(promise: Promise<T>, message: string): Promise<T> {
   try {
     return await promise;
   } catch (error: unknown) {
@@ -58,7 +62,7 @@ async function handleNotFoundError<T>(promise: Promise<T>, message: string): Pro
   }
 }
 
-async function handleDuplicateError<T>(promise: Promise<T>, email: string): Promise<T> {
+export async function handleDuplicateError<T>(promise: Promise<T>, email: string): Promise<T> {
   try {
     return await promise;
   } catch (error: unknown) {
