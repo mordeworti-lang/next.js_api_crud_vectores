@@ -1,5 +1,7 @@
 // Domain Models - Interfaces centralizadas
 
+import { number, string } from "zod";
+
 export interface Word {
   id: number;
   text: string;
@@ -136,3 +138,10 @@ export interface UpdateUserInput {
   nickname?: string;
   password?: string;
 }
+
+export interface PgEmbeddingRow {
+  id: number;
+  word_id: number;
+  vector: string;
+  created_at: Date;
+};

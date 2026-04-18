@@ -1,13 +1,45 @@
 import { pool } from "@/lib/db/pool";
-import type { Embedding, SearchResult } from "@/types";
+import { NotFoundError, ConflictError, DatabaseError } from "@/lib/errors/errors";
+import type { Embedding, PgEmbeddingRow } from "@/types";
 
 function parseVector(vectorStr: string): number[] {
   return vectorStr
-    .replace("[", "")
-    .replace("]", "")
-    .split(",")
-    .map((v) => parseFloat(v));
+  /* mira  /^\[ esto dicebuca corchete al inicio y borralo o si esta al final 
+  |\]$ y borralo y /g que esta busque da es global  aunque est solo toca inicio y fin 
+   */
+    .replace(/^\[|\]$/g, "")
+    .split(",")// separa en , donde encuentra ,
+    .map(v => parseFloat(v));
+    // recorre el array de numero y combierte cada uno en decimal 
 }
+
+function mapToEmbedding(row: PgEmbeddingRow ): Embedding {
+  return {
+    id: row.id,
+    wordId: row.word_id,
+    vector: parseVector(row.vector),
+    createdAt: row.created_at,
+  };
+}
+
+async function handlePgNotFound<T>(promise: Promise<{rows: T[]}>, resource: string, id: PropertyKey,
+): Promise<T> {
+  try{
+  const result = await promise;
+  if (result.rows.length === 0) {
+    //tranformamos en estring el id
+    throw new NotFoundError(resource, id.toString());
+  }
+  return result.rows[0];
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+      throw error;
+    }
+    throw new DatabaseError("Error al buscar embedding", {
+      message: error instanceof Error ? error.message : String(error)
+    });}
+}
+
 
 export async function create(wordId: number, vector: number[]): Promise<void> {
   const vectorString = `[${vector.join(",")}]`;
@@ -17,19 +49,7 @@ export async function create(wordId: number, vector: number[]): Promise<void> {
   ]);
 }
 
-function mapToEmbedding(row: {
-  id: number;
-  word_id: number;
-  vector: string;
-  created_at: Date;
-}): Embedding {
-  return {
-    id: row.id,
-    wordId: row.word_id,
-    vector: parseVector(row.vector),
-    createdAt: row.created_at,
-  };
-}
+
 
 async function queryEmbeddingByWordId(wordId: number) {
   return pool.query(
@@ -44,17 +64,35 @@ export async function findByWordId(wordId: number): Promise<Embedding | null> {
   return mapToEmbedding(result.rows[0]);
 }
 
-export async function deleteByWordId(wordId: number): Promise<void> {
-  await pool.query(`DELETE FROM "Embedding" WHERE word_id = $1`, [wordId]);
+export async function deleteByWordId(wordId: number): Promise<Embedding> {
+  const row = await handlePgNotFound( 
+    pool.query<PgEmbeddingRow>(`DELETE FROM "Embedding" 
+      WHERE word_id = $1`, 
+      [wordId]),
+      "Embedding",
+      wordId,
+    );
+    return mapToEmbedding(row);
 }
 
-export async function update(wordId: number, vector: number[]): Promise<void> {
+export async function update(wordId: number, vector: number[]): Promise<Embedding> {
   const vectorString = `[${vector.join(",")}]`;
-  await pool.query(`UPDATE "Embedding" SET vector = $2::vector WHERE word_id = $1`, [
-    wordId,
-    vectorString,
-  ]);
+  const row = await handlePgNotFound(
+    //aca no ponemos await ya que la funcion que creamos
+    //  anterior mente espera una promesa y 
+    // si ponemos await le estariamos danod el resultado 
+    pool.query<PgEmbeddingRow>(
+      `UPDATE "Embedding" SET "vector" = $1::vector 
+       WHERE "word_id" = $2 
+       RETURNING *`,
+      [vectorString, wordId],  // <-- Orden corregido
+    ),
+    "Embedding",
+    wordId
+  );
+  return mapToEmbedding(row);
 }
+
 
 function mapToSearchResult(row: {
   word_id: number;

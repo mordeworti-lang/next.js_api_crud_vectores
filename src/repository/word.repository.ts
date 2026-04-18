@@ -47,7 +47,7 @@ export async function deleteById(id: number): Promise<Word | null> {
     id.toString()
   );
   
-  console.log(`[Word Repository]: Usuario con email ${deletedWord.text} eliminado.`);
+  console.log(`[Word Repository]: Word con text "${deletedWord.text} eliminado.`);
   return deletedWord ? mapToWord(deletedWord) : null;
 }
 
